@@ -2,6 +2,7 @@
  
    PrepareData.py - Prepares data for metric metadata creation
 
+   
       Dissolves on ReachCode, adds fields
    
    
@@ -58,10 +59,10 @@ desc = gp.Describe(outFC)
 fields = desc.Fields
 
 if 'Match' not in fields:
-    gp.AddField(outFC, 'Match', 'TEXT')
+    gp.AddField(outFC, 'Match_Type', 'TEXT')
 
 # Metadata fields are all the same type
-newFields = ['Length', 'Error', 'Omission', 'Commission', 'Accuracy']
+newFields = ['Feature_Length', 'Match_Length', 'Accuracy', 'Omission_Length', 'Commission_Length']
 
 for f in newFields:
     if f not in fields:
@@ -79,8 +80,8 @@ if 'ComID' in fields:
     gp.CalculateField(outFC, 'ComID', '[MAX_ComID]')
     gp.DeleteField(outFC, 'MAX_ComID')
 
-gp.AddField(outFC, 'FeatDate', 'DOUBLE')
-gp.CalculateField(outFC, 'FeatDate', '[MIN_FeatDate]')
+gp.AddField(outFC, 'Feature_Date', 'DOUBLE')
+gp.CalculateField(outFC, 'Feature_Date', '[MIN_FeatDate]')
 gp.DeleteField(outFC, 'MIN_FeatDate')
    
 gp.AddMessage("Done.")
