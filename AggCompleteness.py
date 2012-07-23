@@ -9,6 +9,10 @@
 """
 
 import sys
+import time
+
+start = time.clock()
+
 
 import arcgisscripting
 gp = arcgisscripting.create(9.3)   # Old School
@@ -82,16 +86,16 @@ while suRow:
     
     # Loop through each input feature inside the aggregation unit
     while inRow:
-        m = inRow.GetValue('Match')
+        m = inRow.GetValue('Match_Type')
         
         if m == 'M':
-            value = inRow.GetValue('Length')
+            value = inRow.GetValue('Match_Length')
             matches.append(value)
         elif m == 'C':
-            value = inRow.GetValue('Commission')
+            value = inRow.GetValue('Commission_Length')
             commissions.append(value)
         elif m == 'O':
-            value = inRow.GetValue('Omission')
+            value = inRow.GetValue('Omission_Length')
             omissions.append(value)
         
         inRow = inCur.Next()
@@ -99,20 +103,28 @@ while suRow:
     del inRow
     del inCur
 
-    suRow.SetValue('cTotal', len(matches) + len(commissions) + len(omissions))
-    suRow.SetValue('cMatch', len(matches))
-    suRow.SetValue('cCommissions', len(commissions))
-    suRow.SetValue('cOmissions', len(omissions))
+    match_count = len(matches)
+    com_count = len(commissions)
+    om_count = len(omissions)
 
-    suRow.SetValue('lTotal', sum(matches) + sum(commissions) + sum(omissions))
-    suRow.SetValue('lMatch', sum(matches))
-    suRow.SetValue('lCommissions', sum(commissions))
-    suRow.SetValue('lOmissions', sum(omissions))
-  
-    suRow.SetValue('Completeness', \
-                   sum(matches) / \
-                   (sum(matches) + sum(omissions) + sum(commissions)) )
-  
+    suRow.SetValue('cTotal', match_count + com_count + om_count)
+    suRow.SetValue('cMatch', match_count)
+    suRow.SetValue('cCommissions', com_count)
+    suRow.SetValue('cOmissions', om_count)
+
+    match_sum = sum(matches)
+    com_sum = sum(commissions)
+    om_sum = sum(omissions)
+    total = match_sum + com_sum + om_sum
+
+    suRow.SetValue('lTotal', total)
+    suRow.SetValue('lMatch', match_sum)
+    suRow.SetValue('lCommissions', com_sum)
+    suRow.SetValue('lOmissions', om_sum)
+    
+    if total != 0:
+        suRow.SetValue('Completeness', match_sum / total)
+      
     suCur.UpdateRow(suRow)
     
     suRow = suCur.Next()
@@ -120,7 +132,19 @@ while suRow:
 del suRow
 del suCur
 
-gp.AddMessage("Done...")
+count = int(gp.GetCount(outFC).GetOutput(0))
+
+elapsed = time.clock() - start
+msg = "Processed " + str(count) + " features in " \
+    + str(elapsed) + " seconds."
+
+gp.AddMessage(msg)
+
+rate = count / elapsed
+
+msg = "That's a rate of " + str(rate) + " features per second."
+
+gp.AddMessage(msg)
 
 # Pass the resulting dataset back to ArcGIS
 gp.SetParameterAsText(2, outFC)

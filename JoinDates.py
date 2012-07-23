@@ -10,6 +10,10 @@
 
 import sys
 
+import time
+
+start = time.clock()
+
 import arcgisscripting
 gp = arcgisscripting.create(9.3)   # Old School
 gp.overwriteoutput = 1
@@ -51,7 +55,19 @@ gp.SpatialJoin(inFC, quadFC, outFC, '#', '#', fm, 'CLOSEST')
 
 gp.DeleteField(outFC, 'Join_Count')
 
-gp.AddMessage("Done.")
+count = int(gp.GetCount(outFC).GetOutput(0))
+
+elapsed = time.clock() - start
+msg = "Processed " + str(count) + " features in " \
+    + str(elapsed) + " seconds."
+
+gp.AddMessage(msg)
+
+rate = count / elapsed
+
+msg = "That's a rate of " + str(rate) + " features per second."
+
+gp.AddMessage(msg)
     
 # Pass the resulting dataset back to ArcGIS  
 gp.SetParameterAsText(2, outFC)

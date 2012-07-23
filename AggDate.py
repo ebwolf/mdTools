@@ -10,6 +10,10 @@
 """
 
 import sys
+import time
+
+start = time.clock()
+
 from SimpleStats import median, mode, mean, stddev
 
 import arcgisscripting
@@ -134,7 +138,19 @@ while suRow:
 del suRow
 del suCur
 
-gp.AddMessage("Done.")
+count = int(gp.GetCount(outFC).GetOutput(0))
+
+elapsed = time.clock() - start
+msg = "Processed " + str(count) + " features in " \
+    + str(elapsed) + " seconds."
+
+gp.AddMessage(msg)
+
+rate = count / elapsed
+
+msg = "That's a rate of " + str(rate) + " features per second."
+
+gp.AddMessage(msg)
 
 # Pass the resulting dataset back to ArcGIS
 gp.SetParameterAsText(3, outFC)
